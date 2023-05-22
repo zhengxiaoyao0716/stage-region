@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+#app {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+#selectFile {
+  position: relative;
+  height: 2.5em;
+  line-height: 2.5em;
+  margin: 0.5em 1em;
+  background-color: #fafafa;
+  border: 1px #666 dashed;
+}
+#selectFile > input {
+  display: none;
+}
+#selectFile > label {
+  display: block;
+  text-align: center;
+}
+
+#outputArea {
+  flex: 1 1 auto;
+  margin: 0 1em 0.5em 1em;
+  position: relative;
+}

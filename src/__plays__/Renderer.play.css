@@ -1,0 +1,71 @@
+#renderer > * {
+  position: absolute;
+  height: 100%;
+}
+
+#renderer > canvas {
+  left: 0;
+  width: calc(100% - 10.5em - 4px);
+  border: 1px dashed #666;
+}
+
+#renderer > #pannel {
+  left: calc(100% - 10em - 2px);
+  width: 10em;
+  border: 1px dashed #666;
+  overflow-y: auto;
+  background: #fafafa;
+}
+#renderer > #pannel::-webkit-scrollbar {
+  display: none;
+}
+
+#pannel > * {
+  display: block;
+}
+#pannel > form {
+  text-align: center;
+}
+#pannel > form input {
+  font-size: inherit;
+  border: none;
+  border-bottom: 1px solid #666;
+  margin: 0.2em 0;
+  max-width: 9em;
+  font-family: inherit;
+  background-color: inherit;
+}
+
+#pannel > .label {
+  margin-top: 0.5em;
+  text-align: center;
+}
+
+#pannel > #layers {
+  padding: 0 0.5em;
+  font-size: 1.1em;
+  line-height: 1.5em;
+  color: #666;
+}
+#pannel > #layers > * {
+  cursor: pointer;
+}
+#pannel > #layers > * * {
+  pointer-events: none;
+}
+#pannel > #layers > * > span {
+  display: inline-block;
+  width: 4em;
+}
+#pannel > #layers > * > svg {
+  float: right;
+  width: 1.2em;
+  height: 1.2em;
+  fill: #666;
+}
+#pannel > #layers > *:hover {
+  color: #000;
+}
+#pannel > #layers > *:hover > svg {
+  fill: #000;
+}

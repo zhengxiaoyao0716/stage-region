@@ -1,0 +1,29 @@
+{
+  "name": "stage-region",
+  "version": "1.0.0",
+  "description": "",
+  "main": "out/index.js",
+  "files": [
+    "out/",
+    "!**/*.test.*",
+    "!**/*.play.*"
+  ],
+  "scripts": {
+    "test": "tsc && jest --rootDir out out",
+    "tsc:watch": "tsc --watch",
+    "jest:watch": "jest --watch --rootDir out out",
+    "prepack": "tsc",
+    "vite:dev": "vite",
+    "vite:dist": "tsc && vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@jest/globals": "^29.5.0",
+    "@types/node": "^20.1.7",
+    "jest": "^29.5.0",
+    "typescript": "^5.0.4",
+    "vite": "^4.3.8"
+  }
+}
