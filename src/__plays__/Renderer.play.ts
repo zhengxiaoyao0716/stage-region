@@ -15,10 +15,10 @@ const stageMap = (() => {
   const clear = (maxWidth: number) => {
     ctx.clearRect(0, 0, maxWidth, maxWidth);
   };
-  const render = (x: number, y: number, w: number) => {
-    console.log(x, y, w);
+  const draw = (maxWidth: number, x: number, y: number, width: number) => {
+    console.log(maxWidth, x, y, width);
   };
-  return { clear, draw: render };
+  return { clear, draw };
 })();
 
 const $pannel = document.createElement("div");
@@ -128,18 +128,20 @@ export async function handleFile(file?: File) {
   const depthVisibleArr = new Array(1 + idx.maxDepth).fill(true);
 
   function render() {
-    stageMap.clear(idx.maxWidth);
+    const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
+    stageMap.clear(maxWidth);
+
     for (let depth = 0; depth < depthVisibleArr.length; depth++) {
       if (!depthVisibleArr[depth]) continue;
-      const width = idx.calcWidth(depth);
-      const widthBit = idx.widthBit + idx.maxDepth - depth;
+      const width = 1; // idx.calcWidth(depth) >> idx.widthBit
+      const widthBit = idx.maxDepth - depth; // idx.widthBit + idx.maxDepth - depth
       const sideGridNum = 1 << depth;
 
       for (let x = 0; x < sideGridNum; x++) {
         for (let y = 0; y < sideGridNum; y++) {
           const status = region.gridStatus(depth, x, y);
           if (status != Region.STAT_INCLUDE) continue;
-          stageMap.draw(x << widthBit, y << widthBit, width);
+          stageMap.draw(maxWidth, x << widthBit, y << widthBit, width);
         }
       }
     }

@@ -1,18 +1,16 @@
 {
   "name": "stage-region",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
-  "main": "out/index.js",
+  "main": "lib/index.js",
   "files": [
-    "out/",
-    "!**/*.test.*",
-    "!**/*.play.*"
+    "lib/",
+    "!**/__tests__",
+    "!**/__plays__"
   ],
   "scripts": {
-    "test": "tsc && jest --rootDir out out",
-    "tsc:watch": "tsc --watch",
-    "jest:watch": "jest --watch --rootDir out out",
-    "prepack": "tsc",
+    "jest:watch": "jest --watch",
+    "prepack": "rimraf ./lib && tsc",
     "vite:dev": "vite",
     "vite:dist": "tsc && vite build"
   },
@@ -23,6 +21,8 @@
     "@jest/globals": "^29.5.0",
     "@types/node": "^20.1.7",
     "jest": "^29.5.0",
+    "rimraf": "^5.0.1",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.0.4",
     "vite": "^4.3.8"
   }

@@ -2,10 +2,12 @@ import { PosValue, RegionFlag, RegionId, byte } from "./utils";
 
 /** 区域查询器 */
 
-type Id = RegionId; // 区域 id，取值范围为 [1, 30]
-type Flag = RegionFlag; // 区域标识，一个标识代表了某个地点所处的多个区域 id 的集合
+/** 区域 id，取值范围为 [1, 30] */
+type /*alias*/ Id = RegionId;
+/** 区域标识，一个标识代表了某个地点所处的多个区域 id 的集合 */
+type /*alias*/ Flag = RegionFlag;
 
-// 查询接口
+/** 查询接口 */
 interface RegionQuery {
   /**
    * 查询区域标识
@@ -30,14 +32,13 @@ interface RegionQuery {
   inRegion(id: Id, posX: PosValue, posY: PosValue): boolean;
 }
 
-// 基础工具
+/** 基础工具 */
 module RegionQuery {
   /**
    * 最大区域数量
-   * <p>
+   *
    * 每个区域索引器实例最大只能支持 30 种区域，
    * 但不相干的区域可以放到不同的索引器实例中。
-   * </p>
    */
   export const MAX_REGIONS: byte = 30;
 

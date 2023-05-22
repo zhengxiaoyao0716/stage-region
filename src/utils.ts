@@ -1,11 +1,13 @@
 //#region type def
-export type byte = number;
-export type short = number;
-export type int32 = number;
-export type double = number;
+export type /*opaque*/ byte = number;
+export type /*opaque*/ short = number;
+export type /*opaque*/ int32 = number;
+export type /*opaque*/ double = number;
 
-export type RegionId = byte; // 区域 id，取值范围为 [1, 30]
-export type RegionFlag = int32; // 区域标识，一个标识代表了某个地点所处的多个区域 id 的集合
+/** 区域 id，取值范围为 [1, 30] */
+export type /*opaque*/ RegionId = byte;
+/** 区域标识，一个标识代表了某个地点所处的多个区域 id 的集合 */
+export type /*opaque*/ RegionFlag = int32;
 
 export interface Pos3D {
   readonly x: double;
@@ -13,7 +15,7 @@ export interface Pos3D {
   readonly z: double;
 }
 
-export type PosValue = Pos3D[keyof Pos3D]; // double
+export type /*def*/ PosValue = Pos3D[keyof Pos3D]; // double
 //#endregion
 
 export class IllegalArgumentException extends Error {
@@ -22,7 +24,13 @@ export class IllegalArgumentException extends Error {
   }
 }
 
-// 算数工具
+export class IndexOutOfBoundsException extends Error {
+  constructor(message?: string) {
+    super(message);
+  }
+}
+
+/** 算数工具 */
 export module Arithmetic {
   //#region 位运算
 
@@ -48,10 +56,9 @@ export module Arithmetic {
 
   /**
    * 找到大于目标值的最小的二的次方数
-   * <p>
+   *
    * 例如，大于 15 的最小二的次方数就是 16，大于 16 的最小二的次方数则是 32。
    * ！注意，该方法为非严谨的快速算法，仅适用于 0 <= val < 0x40000000 的情景！
-   * </p>
    *
    * @param val .
    * @return .
@@ -65,9 +72,8 @@ export module Arithmetic {
 
   /**
    * 获取某个二的次方数的位数
-   * <p>
+   *
    * 例如，powerOfTwoBit(1) = 0, powerOfTwoBit(2) = 1, powerOfTwoBit(4) = 2, ...
-   * </p>
    *
    * @param val .
    * @return .
@@ -98,9 +104,13 @@ export module Arithmetic {
 
 //#region 文件系统
 
+/** 文件管道 */
 export interface FileChannel {
+  /** 从 begin 处开始读取 size 个字节 */
   map(begin: number, size: int32): Uint8Array;
+  /** 从 begin 开始读取剩余的全部字节 */
   mapAll(begin: number): Uint8Array | undefined;
+  /** 关闭管道，释放资源 */
   close(): void;
 }
 //#endregion

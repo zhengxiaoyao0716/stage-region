@@ -5,6 +5,7 @@ import {
   RegionFlag as Flag,
   RegionId as Id,
   IllegalArgumentException,
+  IndexOutOfBoundsException,
   PosValue,
   byte,
   int32,
@@ -21,8 +22,8 @@ export class RegionIdx implements RegionQuery {
     readonly dir: string,
     regionNames: string[]
   ) {
-    if (regionNames.length >= RegionQuery.MAX_REGIONS) {
-      throw new Error("Index out of bounds");
+    if (regionNames.length > RegionQuery.MAX_REGIONS) {
+      throw new IndexOutOfBoundsException();
     }
     this.idNames = Object.freeze(Array.from(regionNames));
     this.regions = new Array(this.idNames.length);
@@ -70,7 +71,7 @@ export class RegionIdx implements RegionQuery {
   }
 
   private createRegion(id: Id): MappedRegion {
-    if (id > this.idNames.length) throw new Error("Index out of bounds");
+    if (id > this.idNames.length) throw new IndexOutOfBoundsException();
     const name = this.idNames[id - 1];
     if (!name) throw new IllegalArgumentException();
     const path = `${this.dir}/${name}.data.bin`;
@@ -89,7 +90,7 @@ export module Region {
   export const STAT_INCLUDE = 0b01; //  代表该格完全位于区域内，无需进一步查深层。
   export const STAT_EXCLUDE = 0b10; //  代表该格子完全位于区域外，无需进一步查深层。
 
-  export type STAT =
+  export type /*def*/ STAT =
     | typeof STAT_UNKNOWN
     | typeof STAT_INCLUDE
     | typeof STAT_EXCLUDE;
@@ -158,7 +159,7 @@ class MappedRegion implements Region {
   }
 }
 
-type RegionLayer = undefined | Uint8Array | RegionLayer.GridStatus;
+type /*def*/ RegionLayer = undefined | Uint8Array | RegionLayer.GridStatus;
 
 module RegionLayer {
   export interface GridStatus {
@@ -235,6 +236,12 @@ module RegionLayer {
         reader.offset2bit(); // assert !eof;
         if (end === 0b11) continue; // 重复 0b110-0b{7}
 
+        if (sameTileEndIndex >= tiles.length) {
+          const sameTileNum = sameTileEndIndex - ti;
+          throw new IndexOutOfBoundsException(
+            `解析连续状态图块异常，depth: ${depth}, tileIndex: ${ti}, sameTileNum: ${sameTileNum}, tiles.length: ${tiles.length}`
+          );
+        }
         const tile = () => end as Region.STAT;
         for (; ti <= sameTileEndIndex; ti++) {
           tiles[ti] = tile;

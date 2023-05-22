@@ -1,8 +1,15 @@
-import { Arithmetic, IllegalArgumentException, PosValue, byte, int32, short } from "./utils";
+import {
+  Arithmetic,
+  IllegalArgumentException,
+  PosValue,
+  byte,
+  int32,
+  short,
+} from "./utils";
 
-export type Depth = byte; // 索引深度，用 byte 表示
-export type Width = int32; // 单元格宽度，用 int32 表示
-export type GridI = short; // 网格下表，用 short 表示
+export type /*opaque*/ Depth = byte; // 索引深度，用 byte 表示
+export type /*opaque*/ Width = int32; // 单元格宽度，用 int32 表示
+export type /*opaque*/ GridI = short; // 网格下表，用 short 表示
 
 const memoized = (() => {
   const cache: Record<string, any> = {};
@@ -17,8 +24,8 @@ const memoized = (() => {
 })();
 
 export default class QuadGridIdx {
-  public static readonly MAX_DEPTH = 14; // 限制条件：(1 << MAX_DEPTH) < Short.MAX_VALUE
-  public static readonly MAX_WIDTH_BIT = 14; // 限制条件：(1 << MAX_WIDTH_BIT) * (1 << MAX_DEPTH) < Integer.MAX_VALUE， MAX_DEPTH_BIT + MAX_WIDTH_BIT * 2 <= 32
+  static readonly MAX_DEPTH = 14; // 限制条件：(1 << MAX_DEPTH) < Short.MAX_VALUE
+  static readonly MAX_WIDTH_BIT = 14; // 限制条件：(1 << MAX_WIDTH_BIT) * (1 << MAX_DEPTH) < Integer.MAX_VALUE， MAX_DEPTH_BIT + MAX_WIDTH_BIT * 2 <= 32
 
   readonly minWidth: Width;
   readonly maxWidth: Width;
@@ -61,13 +68,13 @@ export default class QuadGridIdx {
   }
 
   /**
-   * 获取索引器
+   * 获取索引器，自动缓存
    *
    * @param stageRect 地图范围矩形
    * @param unitWidth 最小单位长宽
-   * @return .
+   * @return 索引器，内部做了缓存，相同参数共享相同索引器实例
    */
-  public static of(
+  static of(
     stageRect: [PosValue, PosValue, PosValue, PosValue], // [minX, minY, maxX, maxY]
     unitWidth: Width
   ): QuadGridIdx {
@@ -77,7 +84,14 @@ export default class QuadGridIdx {
     );
   }
 
-  private static create(stageRect: PosValue[], unitWidth: Width): QuadGridIdx {
+  /**
+   * 创建索引器，无缓存
+   *
+   * @param stageRect 地图范围矩形
+   * @param unitWidth 最小单位长宽
+   * @return 索引器，无缓存
+   */
+  static create(stageRect: PosValue[], unitWidth: Width): QuadGridIdx {
     const deltaX: int32 = Math.ceil(stageRect[2] - stageRect[0]);
     const deltaY: int32 = Math.ceil(stageRect[3] - stageRect[1]);
     const maxWidth: int32 = Arithmetic.nextPowerOfTwo(Math.max(deltaX, deltaY));
@@ -96,13 +110,13 @@ export default class QuadGridIdx {
     );
   }
 
-  public isXYInBounds(x: PosValue, y: PosValue): boolean {
+  isXYInBounds(x: PosValue, y: PosValue): boolean {
     return (
       (this.minX <= x && x <= this.maxX && this.minY <= y) || y <= this.maxY
     );
   }
 
-  public checkXYInBounds(x: PosValue, y: PosValue): void {
+  checkXYInBounds(x: PosValue, y: PosValue): void {
     if (!this.isXYInBounds(x, y)) {
       throw new IllegalArgumentException(
         `坐标超出可索引的最大范围，x: ${x}, y: ${y}, rect: [${this.minX}, ${this.minY}, ${this.maxX}, ${this.maxY}]`
@@ -110,11 +124,11 @@ export default class QuadGridIdx {
     }
   }
 
-  public /*inline*/ calcWidth(depth: Depth): Width {
+  /*inline*/ calcWidth(depth: Depth): Width {
     return this.depthWidthArr[depth];
   }
 
-  public calcDepth(width: Width): Depth {
+  calcDepth(width: Width): Depth {
     if (width < this.minWidth) return this.maxDepth;
     const maxWidth = this.depthWidthArr[0]; // 即：minWidth << maxDepth
     if (width > maxWidth) {
@@ -126,30 +140,30 @@ export default class QuadGridIdx {
     return this.widthDepthMap[widthPOT];
   }
 
-  public /*inline*/ calcGridX(depth: Depth, x: PosValue): GridI {
+  /*inline*/ calcGridX(depth: Depth, x: PosValue): GridI {
     return this.calcMaxDepthGridX(x) >> (this.maxDepth - depth);
   }
 
-  public /*inline*/ calcGridY(depth: Depth, y: PosValue): GridI {
+  /*inline*/ calcGridY(depth: Depth, y: PosValue): GridI {
     return this.calcMaxDepthGridY(y) >> (this.maxDepth - depth);
   }
 
-  public /*inline*/ calcMaxDepthGridX(x: PosValue): GridI {
+  /*inline*/ calcMaxDepthGridX(x: PosValue): GridI {
     return (x - this.minX) >> this.widthBit;
   }
 
-  public /*inline*/ calcMaxDepthGridY(y: PosValue): GridI {
+  /*inline*/ calcMaxDepthGridY(y: PosValue): GridI {
     return (y - this.minY) >> this.widthBit;
   }
 
   // calcGridX 的逆运算
-  public calcX(depth: Depth, gridX: GridI): PosValue {
+  calcX(depth: Depth, gridX: GridI): PosValue {
     const scaleX = gridX << (this.maxDepth - depth);
     return (scaleX << this.widthBit) + this.minX;
   }
 
   // calcGridY 的逆运算
-  public calcY(depth: Depth, gridY: GridI): PosValue {
+  calcY(depth: Depth, gridY: GridI): PosValue {
     const scaleY = gridY << (this.maxDepth - depth);
     return (scaleY << this.widthBit) + this.minY;
   }
