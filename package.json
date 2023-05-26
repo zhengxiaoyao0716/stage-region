@@ -12,7 +12,7 @@
     "jest:watch": "jest --watch",
     "prepack": "rimraf ./lib && tsc",
     "vite:dev": "vite",
-    "vite:dist": "tsc && vite build"
+    "vite:dist": "tsc && vite --base ./ build"
   },
   "keywords": [],
   "author": "",
