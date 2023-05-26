@@ -18,6 +18,13 @@
   bottom: 0;
   padding: 0.5em;
 }
+#preview > #label > * {
+  display: block;
+  font-size: 0.9em;
+  line-height: 1em;
+  border-left: #000 1em solid;
+  padding-left: 0.5em;
+}
 #preview > #position {
   position: absolute;
   display: none;

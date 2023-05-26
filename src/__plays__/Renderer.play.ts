@@ -53,6 +53,7 @@ const stageMap = (() => {
     const $label = document.createElement("span");
     $label.innerText = name;
     $label.style.color = color;
+    $label.style.borderColor = color;
     $labels.appendChild($label);
   };
 
@@ -76,28 +77,42 @@ $pannel.id = "pannel";
 $renderer.appendChild($pannel);
 
 const getIdxArgs = (() => {
+  const argNames = [
+    "stageMinX",
+    "stageMinY",
+    "stageMaxX",
+    "stageMaxY",
+    "unitWidth",
+  ];
   const $idxArgs = document.createElement("form");
-  $idxArgs.innerHTML = `
-    <input name="stageMinX" type="number" title="stageMinX" placeholder="stageMinX" />
-    <input name="stageMinY" type="number" title="stageMinY" placeholder="stageMinY" />
-    <input name="stageMaxX" type="number" title="stageMaxX" placeholder="stageMaxX" />
-    <input name="stageMaxY" type="number" title="stageMaxY" placeholder="stageMaxY" />
-    <input name="unitWidth" type="number" title="unitWidth" placeholder="unitWidth" />
-  `;
+  $idxArgs.innerHTML = argNames
+    .map(
+      (name) =>
+        `<input name="${name}" type="number" title="${name}" placeholder="${name}" />`
+    )
+    .join("");
   $pannel.appendChild($idxArgs);
 
   function getIdxArgs(): [number, number, number, number, number] {
     const $inputs = $idxArgs.getElementsByTagName("input");
-    const saved = JSON.parse(
-      localStorage.getItem("idxArgs") ??
-        "[-500000, -500000, 500000, 500000, 128]"
-    );
+    const searchParams = new URLSearchParams(location.search);
+    const saved =
+      searchParams
+        .get("args")
+        ?.split("_")
+        ?.map((val) => Number.parseInt(val)) ??
+      JSON.parse(
+        localStorage.getItem("idxArgs") ??
+          "[-500000, -500000, 500000, 500000, 128]"
+      );
     const args = Array.prototype.map.call($inputs, ($input, i) => {
       if ($input.value) return Number.parseInt($input.value);
       $input.value = String(saved[i]);
       return saved[i];
     }) as [number, number, number, number, number];
     localStorage.setItem("idxArgs", JSON.stringify(args));
+    searchParams.set("args", args.join("_"));
+    history.pushState(null, "", `?${searchParams}`);
     return args;
   }
   return getIdxArgs;
