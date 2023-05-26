@@ -254,7 +254,7 @@ module RegionLayer {
       const tileX = gridX >> tileSideBit;
       const tileY = gridY >> tileSideBit;
       const tile = tiles[(tileY << layerTileBit) | tileX];
-      return tile(gridX, gridY);
+      return tile == null ? Region.STAT_UNKNOWN : tile(gridX, gridY);
     };
   }
 }

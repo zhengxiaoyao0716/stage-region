@@ -8,10 +8,10 @@ import { FileChannel, int32 } from "../utils";
 const dir = path.resolve(process.cwd(), "src", "__tests__", "assets");
 
 test("test region idx", async () => {
-  const idx = QuadGridIdx.of([0, 0, 4_000_00, 4_000_00], 1_00);
+  const idx = QuadGridIdx.of([0, 0, 2000, 2000], 1);
   const query = new RegionIdx(openFile, idx, dir, ["test"]);
   // expect(query.regionFlag(0, 0)).toBe(0);
-  expect(query.regionFlag(1100_00, 600_00)).toBe(1);
+  expect(query.regionFlag(300, 600)).toBe(1);
 });
 
 function openFile(path: string): FileChannel | null {
