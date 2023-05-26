@@ -30,7 +30,6 @@ test("test quad grid idx mm", () => {   // 单位毫米
 // prettier-ignore
 test("test quad grid idx", () => {  // 单位米
   const idx = QuadGridIdx.of([-4000, -4000, 4000, 4000], 16);
-  // testFullBuildMemo(root);
   // 数值估算：对于 8km * 8km 大小、单位长度 10m 的地图，
   // 索引树结构的最大深度为 9 层（从 0 开始，共 10 层），
   // 网格最小宽度为 16m，可索引的范围为 16 << 9 = 8192m。

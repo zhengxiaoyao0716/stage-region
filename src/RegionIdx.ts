@@ -109,7 +109,7 @@ export module Region {
       const x = gridX >> (depth - i);
       const y = gridY >> (depth - i);
       const status = region.gridStatus(i, x, y);
-      if (status != 0) return status == STAT_INCLUDE;
+      if (status !== 0) return status == STAT_INCLUDE;
     }
     return false;
   }
@@ -254,7 +254,7 @@ module RegionLayer {
       const tileX = gridX >> tileSideBit;
       const tileY = gridY >> tileSideBit;
       const tile = tiles[(tileY << layerTileBit) | tileX];
-      return tile(gridX, gridY);
+      return tile == null ? Region.STAT_UNKNOWN : tile(gridX, gridY);
     };
   }
 }
