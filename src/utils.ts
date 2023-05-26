@@ -41,7 +41,7 @@ export module Arithmetic {
    * @return .
    */
   export function isPowerOfTwo(val: int32): boolean {
-    return (val & -val) == val; // 0b0010 & (0b1101 + 1) == 0b0010
+    return (val & -val) === val; // 0b0010 & (0b1101 + 1) == 0b0010
   }
 
   export function fillAfterHighestOneBit(val: int32): int32 {
@@ -87,7 +87,7 @@ export module Arithmetic {
   export function numberOfLeadingZeros(i: int32) {
   // HD, Count leading 0's
   if (i <= 0)
-      return i == 0 ? INTEGER_SIZE : 0;
+      return i === 0 ? INTEGER_SIZE : 0;
   let n = 31;
   if (i >= 1 << 16) { n -= 16; i >>>= 16; }
   if (i >= 1 <<  8) { n -=  8; i >>>=  8; }
@@ -97,7 +97,7 @@ export module Arithmetic {
 }
 
   export function isEven(val: int32): boolean {
-    return (val & 1) == 0;
+    return (val & 1) === 0;
   }
   //#endregion
 }

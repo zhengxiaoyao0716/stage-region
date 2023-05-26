@@ -1,25 +1,74 @@
 import QuadGridIdx from "../QuadGridIdx";
 import { Region, RegionIdx } from "../RegionIdx";
-import { FileChannel } from "../utils";
+import { FileChannel, IllegalArgumentException } from "../utils";
 import "./Renderer.play.css";
 
 export const $renderer = document.createElement("div");
 $renderer.id = "renderer";
 
-const $canvas = document.createElement("canvas");
-$renderer.appendChild($canvas);
+const $preview = document.createElement("div");
+$preview.id = "preview";
+$renderer.appendChild($preview);
 
 const stageMap = (() => {
+  const $canvas = document.createElement("canvas");
+  $preview.appendChild($canvas);
   const ctx = $canvas.getContext("2d");
   if (ctx == null) throw new Error(); // NEVER!
-  const clear = (maxWidth: number) => {
+  $canvas.width = 0;
+  $canvas.height = 0;
+
+  const $labels = document.createElement("div");
+  $labels.id = "label";
+  $preview.appendChild($labels);
+
+  let rect: DOMRect | undefined;
+  let scale = 1;
+  let calcX: (value: number) => number;
+  let calcY: (value: number) => number;
+
+  const init = (
+    maxWidth: number,
+    minWidth: number,
+    minX: number,
+    minY: number
+  ) => {
+    $canvas.width = maxWidth;
+    $canvas.height = maxWidth;
+    rect = $preview.getBoundingClientRect();
+    scale = Math.min(rect.width, rect.height) / maxWidth;
+    calcX = (x) => (x / scale) * minWidth + minX;
+    calcY = (y) => (y / scale) * minWidth + minY;
+
+    $canvas.style.transform = `scale(${scale})`;
     ctx.clearRect(0, 0, maxWidth, maxWidth);
+    $labels.innerHTML = "";
   };
-  const draw = (maxWidth: number, x: number, y: number, width: number) => {
-    console.log(maxWidth, x, y, width);
-    ctx.rect(x, y, width, width);
+  const draw = (color: string, x: number, y: number, width: number) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, width, width);
   };
-  return { clear, draw };
+
+  const label = (name: string, color: string) => {
+    const $label = document.createElement("span");
+    $label.innerText = name;
+    $label.style.color = color;
+    $labels.appendChild($label);
+  };
+
+  const $position = document.createElement("i");
+  $position.id = "position";
+  $preview.appendChild($position);
+
+  $preview.addEventListener("mousemove", (event) => {
+    if (rect == null) return;
+    const x = event.x - rect.left;
+    const y = event.y - rect.top;
+    $position.innerText = `${calcX(x).toFixed(2)}, ${calcY(y).toFixed(2)}`;
+    $position.style.left = `${x + 12}px`;
+    $position.style.top = `${y}px`;
+  });
+  return { init, draw, label };
 })();
 
 const $pannel = document.createElement("div");
@@ -87,7 +136,7 @@ const renderLayers = (() => {
     depthVisibleArr: boolean[],
     toggleVisible?: (depth: number) => boolean
   ) {
-    // toggleLayerVisible = toggleVisible;
+    toggleLayerVisible = toggleVisible;
     if (depthVisibleArr.length === 0) {
       $layers.innerHTML =
         '<span style="display: block; text-align: center;">&lt;empty&gt;</span>';
@@ -105,60 +154,81 @@ const renderLayers = (() => {
   return renderLayers;
 })();
 
-export async function handleFile(file?: File) {
-  if (file == null) {
+export async function handleFile(files: FileList | null | undefined) {
+  if (files == null || files.length === 0) {
     renderLayers([]);
     return;
   }
-  const buffer = new Uint8Array(await file.arrayBuffer());
-  const channel: FileChannel = {
-    close() {},
-    map(begin, size) {
-      return buffer.slice(begin, size);
-    },
-    mapAll(begin) {
-      return buffer.slice(begin);
-    },
-  };
+  const fileBuffers: { [name: string]: ArrayBuffer } = Object.fromEntries(
+    await Promise.all(
+      (
+        Array.prototype.filter.call(files, (file: File) =>
+          file.name.endsWith(".data.bin")
+        ) as File[]
+      ).map(async (file) => [file.name.slice(0, -9), await file.arrayBuffer()])
+    )
+  );
+  const filenames = Object.keys(fileBuffers);
+
+  function openFile(path: string): FileChannel {
+    const name = path.slice(1, -9);
+    const buffer = new Uint8Array(fileBuffers[name]);
+    return {
+      close() {},
+      map(begin, size) {
+        return buffer.slice(begin, size);
+      },
+      mapAll(begin) {
+        return buffer.slice(begin);
+      },
+    };
+  }
   const [stageMinX, stageMinY, stageMaxX, stageMaxY, unitWidth] = getIdxArgs();
   const idx = QuadGridIdx.of(
     [stageMinX, stageMinY, stageMaxX, stageMaxY],
     unitWidth
   );
-  const region = new RegionIdx(() => channel, idx, "", [file.name]).region(0);
+  const query = new RegionIdx(openFile, idx, "", filenames);
   const depthVisibleArr = new Array(1 + idx.maxDepth).fill(true);
 
   function render() {
-    // const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
-    // stageMap.clear(maxWidth);
+    const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
+    stageMap.init(maxWidth, idx.minWidth, idx.minX, idx.minY);
 
-    // for (let depth = 0; depth < depthVisibleArr.length; depth++) {
-    //   if (!depthVisibleArr[depth]) continue;
-    //   const width = 1; // idx.calcWidth(depth) >> idx.widthBit
-    //   const widthBit = idx.maxDepth - depth; // idx.widthBit + idx.maxDepth - depth
-    //   const sideGridNum = 1 << depth;
+    for (let regionIndex = 0; regionIndex < filenames.length; regionIndex++) {
+      const color = `hsl(${
+        (regionIndex * 360) / filenames.length
+      }deg 100% 50% / 60%)`;
+      const region = query.region(regionIndex + 1);
+      const name = filenames[regionIndex];
+      stageMap.label(name, color);
 
-    //   for (let x = 0; x < sideGridNum; x++) {
-    //     for (let y = 0; y < sideGridNum; y++) {
-    //       const status = region.gridStatus(depth, x, y);
-    //       if (status != Region.STAT_INCLUDE) continue;
-    //       stageMap.draw(maxWidth, x << widthBit, y << widthBit, width);
-    //     }
-    //   }
-    // }
-    // TODO: 合并到上面注释代码
-    $canvas.width = 2048;
-    $canvas.height = 2048;
-    const ctx = $canvas.getContext("2d");
-    const idxa = QuadGridIdx.of([0, 0, 2000, 2000], 1);
-    // @ts-ignore
-    const query = new RegionIdx(() => channel, idxa, "", [file.name]);
-    for (let i = -24; i < 2024; i++) {
-      for (let j = -24; j < 2024; j++) {
-        if (query.regionFlag(i, j)) {
-          // @ts-ignore
-          ctx.strokeStyle = "red";
-          ctx?.strokeRect(i + 24, j + 24, 1, 1);
+      for (let depth = 0; depth < depthVisibleArr.length; depth++) {
+        if (!depthVisibleArr[depth]) continue;
+        const widthBit = idx.maxDepth - depth; // idx.widthBit + idx.maxDepth - depth
+        const width = 1 << widthBit; // idx.calcWidth(depth) >> idx.widthBit
+        const sideGridNum = 1 << depth;
+
+        for (let x = 0; x < sideGridNum; x++) {
+          for (let y = 0; y < sideGridNum; y++) {
+            const status = region.gridStatus(depth, x, y);
+            switch (status) {
+              case Region.STAT_UNKNOWN:
+                continue;
+              case Region.STAT_INCLUDE: {
+                stageMap.draw(color, x << widthBit, y << widthBit, width);
+                break;
+              }
+              case Region.STAT_EXCLUDE: {
+                stageMap.draw("#ffffff99", x << widthBit, y << widthBit, width);
+                break;
+              }
+              default:
+                throw new Error(
+                  `unexpected status, region: ${name}, depth: ${depth}, gridX: ${x}, gridY: ${y}, status: ${status}`
+                );
+            }
+          }
         }
       }
     }

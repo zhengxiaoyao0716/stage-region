@@ -10,7 +10,7 @@ $app.appendChild(
     $uploadInput.type = "file";
     $uploadInput.addEventListener("change", (event: Event) => {
       const target = event.target as HTMLInputElement | null;
-      handleFile(target?.files?.[0]);
+      handleFile(target?.files);
     });
 
     const $uploadLabel = document.createElement("label");
@@ -22,7 +22,7 @@ $app.appendChild(
     });
     $uploadLabel.addEventListener("drop", (event) => {
       event.preventDefault();
-      handleFile(event.dataTransfer?.files?.[0]);
+      handleFile(event.dataTransfer?.files);
     });
 
     const $selectFile = document.createElement("div");

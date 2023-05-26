@@ -10,8 +10,11 @@ const dir = path.resolve(process.cwd(), "src", "__tests__", "assets");
 test("test region idx", async () => {
   const idx = QuadGridIdx.of([0, 0, 2000, 2000], 1);
   const query = new RegionIdx(openFile, idx, dir, ["test"]);
-  // expect(query.regionFlag(0, 0)).toBe(0);
-  expect(query.regionFlag(300, 600)).toBe(1);
+  expect(query.regionFlag(0, 0)).toBe(0);
+  expect(query.regionFlag(450, 430)).toBe(0);
+  expect(query.regionFlag(500, 430)).toBe(1);
+  expect(query.regionFlag(600, 430)).toBe(1);
+  expect(query.regionFlag(800, 430)).toBe(1);
 });
 
 function openFile(path: string): FileChannel | null {
@@ -33,7 +36,7 @@ function openFile(path: string): FileChannel | null {
 
     while (true) {
       const buffer = mapToBuffer(1024);
-      if (buffer.byteLength == 0) break;
+      if (buffer.byteLength === 0) break;
       buffers.push(buffer);
       totalLength += buffer.byteLength;
       if (buffer.byteLength < 1024) break;

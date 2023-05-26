@@ -18,7 +18,7 @@ body {
   height: 2.5em;
   line-height: 2.5em;
   margin: 0.5em 1em;
-  background-color: #fafafa;
+  background: #fafafa;
   border: 1px #666 dashed;
 }
 #selectFile > input {

@@ -1,19 +1,36 @@
 #renderer > * {
   position: absolute;
-  /* height: 100%; */
-}
-#outputArea {
-  overflow: auto;
+  height: 100%;
 }
 
-#renderer > canvas {
+#renderer > #preview {
   left: 0;
-  /* width: calc(100% - 10.5em - 4px); */
+  width: calc(100% - 10.5em - 4px);
   border: 1px dashed #666;
+  background: #fafafa;
+}
+#preview > canvas {
+  transform-origin: left top;
+}
+#preview > #label {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0.5em;
+}
+#preview > #position {
+  position: absolute;
+  display: none;
+  pointer-events: none;
+  z-index: 1;
+  white-space: nowrap;
+  background-color: #ffffff99;
+}
+#preview:hover > #position {
+  display: block;
 }
 
 #renderer > #pannel {
-  display: none;
   left: calc(100% - 10em - 2px);
   width: 10em;
   border: 1px dashed #666;

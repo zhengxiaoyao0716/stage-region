@@ -56,7 +56,7 @@ export class RegionIdx implements RegionQuery {
   }
 
   region(regionId: Id): Region {
-    if (regionId <= 0) return Region.EXCLUDE;
+    if (regionId <= 0) throw new IndexOutOfBoundsException();
     const index = regionId - 1;
     const cache = this.regions[index];
     if (cache != null) return cache;
@@ -109,7 +109,7 @@ export module Region {
       const x = gridX >> (depth - i);
       const y = gridY >> (depth - i);
       const status = region.gridStatus(i, x, y);
-      if (status !== 0) return status == STAT_INCLUDE;
+      if (status !== 0) return status === STAT_INCLUDE;
     }
     return false;
   }
@@ -198,7 +198,7 @@ module RegionLayer {
         tiles[ti] = (gridX, gridY) => {
           const x = gridX & tileSideMask;
           const y = gridY & tileSideMask;
-          return grids[(y << tileSideBit) | x];
+          return grids[(y << tileSideBit) | x] ?? Region.STAT_UNKNOWN;
         };
         continue;
       }
@@ -254,7 +254,7 @@ module RegionLayer {
       const tileX = gridX >> tileSideBit;
       const tileY = gridY >> tileSideBit;
       const tile = tiles[(tileY << layerTileBit) | tileX];
-      return tile == null ? Region.STAT_UNKNOWN : tile(gridX, gridY);
+      return tile?.(gridX, gridY) ?? Region.STAT_UNKNOWN;
     };
   }
 }
