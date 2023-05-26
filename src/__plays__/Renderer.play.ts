@@ -17,6 +17,7 @@ const stageMap = (() => {
   };
   const draw = (maxWidth: number, x: number, y: number, width: number) => {
     console.log(maxWidth, x, y, width);
+    ctx.rect(x, y, width, width);
   };
   return { clear, draw };
 })();
@@ -86,7 +87,7 @@ const renderLayers = (() => {
     depthVisibleArr: boolean[],
     toggleVisible?: (depth: number) => boolean
   ) {
-    toggleLayerVisible = toggleVisible;
+    // toggleLayerVisible = toggleVisible;
     if (depthVisibleArr.length === 0) {
       $layers.innerHTML =
         '<span style="display: block; text-align: center;">&lt;empty&gt;</span>';
@@ -128,20 +129,36 @@ export async function handleFile(file?: File) {
   const depthVisibleArr = new Array(1 + idx.maxDepth).fill(true);
 
   function render() {
-    const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
-    stageMap.clear(maxWidth);
+    // const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
+    // stageMap.clear(maxWidth);
 
-    for (let depth = 0; depth < depthVisibleArr.length; depth++) {
-      if (!depthVisibleArr[depth]) continue;
-      const width = 1; // idx.calcWidth(depth) >> idx.widthBit
-      const widthBit = idx.maxDepth - depth; // idx.widthBit + idx.maxDepth - depth
-      const sideGridNum = 1 << depth;
+    // for (let depth = 0; depth < depthVisibleArr.length; depth++) {
+    //   if (!depthVisibleArr[depth]) continue;
+    //   const width = 1; // idx.calcWidth(depth) >> idx.widthBit
+    //   const widthBit = idx.maxDepth - depth; // idx.widthBit + idx.maxDepth - depth
+    //   const sideGridNum = 1 << depth;
 
-      for (let x = 0; x < sideGridNum; x++) {
-        for (let y = 0; y < sideGridNum; y++) {
-          const status = region.gridStatus(depth, x, y);
-          if (status != Region.STAT_INCLUDE) continue;
-          stageMap.draw(maxWidth, x << widthBit, y << widthBit, width);
+    //   for (let x = 0; x < sideGridNum; x++) {
+    //     for (let y = 0; y < sideGridNum; y++) {
+    //       const status = region.gridStatus(depth, x, y);
+    //       if (status != Region.STAT_INCLUDE) continue;
+    //       stageMap.draw(maxWidth, x << widthBit, y << widthBit, width);
+    //     }
+    //   }
+    // }
+    // TODO: 合并到上面注释代码
+    $canvas.width = 2048;
+    $canvas.height = 2048;
+    const ctx = $canvas.getContext("2d");
+    const idxa = QuadGridIdx.of([0, 0, 2000, 2000], 1);
+    // @ts-ignore
+    const query = new RegionIdx(() => channel, idxa, "", [file.name]);
+    for (let i = -24; i < 2024; i++) {
+      for (let j = -24; j < 2024; j++) {
+        if (query.regionFlag(i, j)) {
+          // @ts-ignore
+          ctx.strokeStyle = "red";
+          ctx?.strokeRect(i + 24, j + 24, 1, 1);
         }
       }
     }

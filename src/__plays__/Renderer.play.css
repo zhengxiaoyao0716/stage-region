@@ -1,15 +1,19 @@
 #renderer > * {
   position: absolute;
-  height: 100%;
+  /* height: 100%; */
+}
+#outputArea {
+  overflow: auto;
 }
 
 #renderer > canvas {
   left: 0;
-  width: calc(100% - 10.5em - 4px);
+  /* width: calc(100% - 10.5em - 4px); */
   border: 1px dashed #666;
 }
 
 #renderer > #pannel {
+  display: none;
   left: calc(100% - 10em - 2px);
   width: 10em;
   border: 1px dashed #666;
