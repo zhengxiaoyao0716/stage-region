@@ -41,7 +41,7 @@ export default class QuadGridIdx {
     readonly maxX: PosValue,
     readonly maxY: PosValue
   ) {
-    if (maxDepth <= 0 || widthBit <= 0) throw new IllegalArgumentException();
+    if (maxDepth <= 0 || widthBit < 0) throw new IllegalArgumentException();
     if (maxDepth > QuadGridIdx.MAX_DEPTH) {
       // short 去掉符号总共只有 15 位，深度超过 14 的话，格子坐标用 short 就溢出了
       throw new IllegalArgumentException(
@@ -96,7 +96,7 @@ export default class QuadGridIdx {
     const deltaY: int32 = Math.ceil(stageRect[3] - stageRect[1]);
     const maxWidth: int32 = Arithmetic.nextPowerOfTwo(Math.max(deltaX, deltaY));
     const minWidth: int32 = Arithmetic.nextPowerOfTwo(unitWidth - 1);
-    const widthBit: byte = Arithmetic.powerOfTwoBit(Math.max(2, minWidth));
+    const widthBit: byte = Arithmetic.powerOfTwoBit(Math.max(1, minWidth));
     const maxDepth: byte = Arithmetic.powerOfTwoBit(maxWidth >> widthBit);
     const offsetX: int32 = (maxWidth - deltaX) / 2;
     const offsetY: int32 = (maxWidth - deltaY) / 2;

@@ -12,7 +12,7 @@ export { FileChannel, QuadGridIdx, RegionQuery };
  * @param openFile 文件管道
  * @param idx 四叉网格索引器
  * @param dir 区域资源目录
- * @param regionNames 区域名
+ * @param regionNames 区域名集合
  * @returns 区域查询实例
  */
 export function createRegionQuery(

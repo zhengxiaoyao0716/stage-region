@@ -10,7 +10,9 @@ $app.appendChild(
     $uploadInput.type = "file";
     $uploadInput.addEventListener("change", (event: Event) => {
       const target = event.target as HTMLInputElement | null;
-      handleFile(target?.files);
+      if (target == null) return;
+      handleFile(target.files);
+      target.value = "";
     });
 
     const $uploadLabel = document.createElement("label");

@@ -170,10 +170,16 @@ const renderLayers = (() => {
 })();
 
 export async function handleFile(files: FileList | null | undefined) {
-  if (files == null || files.length === 0) {
-    renderLayers([]);
-    return;
-  }
+  renderLayers([]);
+  if (files == null || files.length === 0) return;
+
+  const [stageMinX, stageMinY, stageMaxX, stageMaxY, unitWidth] = getIdxArgs();
+  const idx = QuadGridIdx.of(
+    [stageMinX, stageMinY, stageMaxX, stageMaxY],
+    unitWidth
+  );
+  const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
+
   const fileBuffers: { [name: string]: ArrayBuffer } = Object.fromEntries(
     await Promise.all(
       (
@@ -198,16 +204,10 @@ export async function handleFile(files: FileList | null | undefined) {
       },
     };
   }
-  const [stageMinX, stageMinY, stageMaxX, stageMaxY, unitWidth] = getIdxArgs();
-  const idx = QuadGridIdx.of(
-    [stageMinX, stageMinY, stageMaxX, stageMaxY],
-    unitWidth
-  );
   const query = new RegionIdx(openFile, idx, "", filenames);
   const depthVisibleArr = new Array(1 + idx.maxDepth).fill(true);
 
   function render() {
-    const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
     stageMap.init(maxWidth, idx.minWidth, idx.minX, idx.minY);
 
     for (let regionIndex = 0; regionIndex < filenames.length; regionIndex++) {

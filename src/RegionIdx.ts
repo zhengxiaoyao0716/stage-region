@@ -16,6 +16,14 @@ export class RegionIdx implements RegionQuery {
   private readonly idNames: readonly string[];
   private readonly regions: Region[];
 
+  /**
+   * 创建区域索引器
+   *
+   * @param openFile 文件管道
+   * @param idx         四叉网格索引器
+   * @param dir         区域资源目录
+   * @param regionNames 区域名集合
+   */
   constructor(
     readonly openFile: (path: string) => FileChannel | null,
     readonly idx: QuadGridIdx,
@@ -56,29 +64,32 @@ export class RegionIdx implements RegionQuery {
   }
 
   region(regionId: Id): Region {
-    if (regionId <= 0) throw new IndexOutOfBoundsException();
+    if (regionId <= 0 || regionId > this.idNames.length) {
+      throw new IndexOutOfBoundsException();
+    }
     const index = regionId - 1;
-    const cache = this.regions[index];
-    if (cache != null) return cache;
     try {
-      const region = this.createRegion(regionId);
+      const cache = this.regions[index];
+      if (cache != null) return cache;
+      const name = this.idNames[index];
+      if (!name) return Region.EXCLUDE;
+
+      const region = this.createRegion(name);
       this.regions[index] = region;
       return region;
     } catch (error) {
-      console.error(`加载区域索引失败，dir: ${this.dir}, id: ${regionId}`);
+      console.error(`加载区域索引失败，dir: ${this.dir}, id: ${regionId}`, error);
       return Region.EXCLUDE;
     }
   }
 
-  private createRegion(id: Id): MappedRegion {
-    if (id > this.idNames.length) throw new IndexOutOfBoundsException();
-    const name = this.idNames[id - 1];
+  private createRegion(name: string): MappedRegion {
     if (!name) throw new IllegalArgumentException();
     const path = `${this.dir}/${name}.data.bin`;
     const channel = this.openFile(path);
     if (channel == null) throw new Error("File not found");
     try {
-      return new MappedRegion(id, this.idx.maxDepth, channel);
+      return new MappedRegion(this.idx.maxDepth, channel);
     } finally {
       channel.close();
     }
@@ -111,7 +122,7 @@ export module Region {
       const status = region.gridStatus(i, x, y);
       if (status !== 0) return status === STAT_INCLUDE;
     }
-    return false;
+    return true; // 所有层查完了，区块状态仍未知，视同 INCLUDE
   }
 }
 
@@ -123,7 +134,7 @@ const HEADER_LEN = 32;
 class MappedRegion implements Region {
   private readonly layers: RegionLayer[];
 
-  constructor(readonly id: Id, maxDepth: Depth, channel: FileChannel) {
+  constructor(maxDepth: Depth, channel: FileChannel) {
     this.layers = new Array(1 + maxDepth);
 
     const header = channel.map(0, HEADER_LEN);
@@ -133,10 +144,13 @@ class MappedRegion implements Region {
       const offset = (header[byteIndex] << 4) | header[byteIndex + 1];
       const end = HEADER_LEN + (offset << 10); // offset * 1024
       const size = end - begin; // assert size < Integer.MAX_VALUE
-      if (size > 0) {
-        this.layers[depth] = channel.map(begin, size);
-        begin = end;
+      if (size < 0) {
+        throw new IllegalArgumentException(
+          `解析偏移量信息异常，depth: ${depth}, begin: ${begin}, end: ${end}`
+        );
       }
+      this.layers[depth] = channel.map(begin, size);
+      begin = end;
     }
     const buffer = channel.mapAll(begin);
     if (buffer != null && buffer.byteLength > 0) {
