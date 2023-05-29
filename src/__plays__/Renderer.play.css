@@ -8,6 +8,9 @@
   width: calc(100% - 10.5em - 4px);
   border: 1px dashed #666;
   background: #fafafa;
+  background-image: linear-gradient(#fafafa 7px, transparent 0),
+    linear-gradient(90deg, #666 1px, transparent 0);
+  background-size: 8px 8px;
 }
 #preview > canvas {
   transform-origin: left top;

@@ -178,7 +178,6 @@ export async function handleFile(files: FileList | null | undefined) {
     [stageMinX, stageMinY, stageMaxX, stageMaxY],
     unitWidth
   );
-  const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
 
   const fileBuffers: { [name: string]: ArrayBuffer } = Object.fromEntries(
     await Promise.all(
@@ -208,6 +207,7 @@ export async function handleFile(files: FileList | null | undefined) {
   const depthVisibleArr = new Array(1 + idx.maxDepth).fill(true);
 
   function render() {
+    const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
     stageMap.init(maxWidth, idx.minWidth, idx.minX, idx.minY);
 
     for (let regionIndex = 0; regionIndex < filenames.length; regionIndex++) {
