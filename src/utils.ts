@@ -106,9 +106,9 @@ export module Arithmetic {
 
 /** 文件管道 */
 export interface FileChannel {
-  /** 从 begin 处开始读取 size 个字节 */
-  map(begin: number, size: int32): Uint8Array;
-  /** 从 begin 开始读取剩余的全部字节 */
+  /** 读取从 begin 到 end 的 begin - end 个字节 */
+  map(begin: number, end: int32): Uint8Array;
+  /** 读取从 begin 开始到文件结束的剩余全部字节 */
   mapAll(begin: number): Uint8Array | undefined;
   /** 关闭管道，释放资源 */
   close(): void;

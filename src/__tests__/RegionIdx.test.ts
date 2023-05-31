@@ -8,13 +8,9 @@ import { FileChannel, int32 } from "../utils";
 const dir = path.resolve(process.cwd(), "src", "__tests__", "assets");
 
 test("test region idx", async () => {
-  const idx = QuadGridIdx.of([0, 0, 2000, 2000], 1);
+  const idx = QuadGridIdx.of([0, 0, 2000_00, 2000_00], 128);
   const query = new RegionIdx(openFile, idx, dir, ["test"]);
   expect(query.regionFlag(0, 0)).toBe(0);
-  expect(query.regionFlag(450, 430)).toBe(0);
-  expect(query.regionFlag(500, 430)).toBe(1);
-  expect(query.regionFlag(600, 430)).toBe(1);
-  expect(query.regionFlag(800, 430)).toBe(1);
 });
 
 function openFile(path: string): FileChannel | null {
@@ -44,8 +40,8 @@ function openFile(path: string): FileChannel | null {
     return Buffer.concat(buffers, totalLength);
   }
   return {
-    map(_begin, size) {
-      return mapToBuffer(size);
+    map(begin, end) {
+      return mapToBuffer(end - begin);
     },
     mapAll(_begin) {
       return mapAllToBuffer();

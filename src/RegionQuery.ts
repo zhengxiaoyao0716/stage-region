@@ -62,10 +62,11 @@ module RegionQuery {
    */
   export function* regionIds(flag: Flag): Generator<Id> {
     if (flag <= 0) return;
-    for (let id = 1; id <= 30; id++) {
-      const mask = 1 << id;
+    for (let index = 0; index < MAX_REGIONS; index++) {
+      const mask = 1 << index;
       if (mask > flag) break;
-      if ((flag & mask) > 0) yield id;
+      else if ((flag & mask) > 0) yield 1 + index;
+      // else continue;
     }
   }
 

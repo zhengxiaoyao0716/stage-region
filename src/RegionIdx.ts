@@ -143,13 +143,12 @@ class MappedRegion implements Region {
       const byteIndex = (depth + 1) << 1;
       const offset = (header[byteIndex] << 4) | header[byteIndex + 1];
       const end = HEADER_LEN + (offset << 10); // offset * 1024
-      const size = end - begin; // assert size < Integer.MAX_VALUE
-      if (size < 0) {
+      if (end < begin) {
         throw new IllegalArgumentException(
           `解析偏移量信息异常，depth: ${depth}, begin: ${begin}, end: ${end}`
         );
       }
-      this.layers[depth] = channel.map(begin, size);
+      this.layers[depth] = channel.map(begin, end);
       begin = end;
     }
     const buffer = channel.mapAll(begin);

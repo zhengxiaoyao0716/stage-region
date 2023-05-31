@@ -194,13 +194,9 @@ export async function handleFile(files: FileList | null | undefined) {
     const name = path.slice(1, -9);
     const buffer = new Uint8Array(fileBuffers[name]);
     return {
-      close() {},
-      map(begin, size) {
-        return buffer.slice(begin, size);
-      },
-      mapAll(begin) {
-        return buffer.slice(begin);
-      },
+      close: () => {},
+      map: (begin, end) => buffer.slice(begin, end),
+      mapAll: (begin) => buffer.slice(begin),
     };
   }
   const query = new RegionIdx(openFile, idx, "", filenames);
@@ -239,7 +235,7 @@ export async function handleFile(files: FileList | null | undefined) {
                 break;
               }
               default:
-                throw new Error(
+                console.error(
                   `unexpected status, region: ${name}, depth: ${depth}, gridX: ${x}, gridY: ${y}, status: ${status}`
                 );
             }
