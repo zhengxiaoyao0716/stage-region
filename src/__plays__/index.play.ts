@@ -8,6 +8,7 @@ $app.appendChild(
     const $uploadInput = document.createElement("input");
     $uploadInput.id = "upload";
     $uploadInput.type = "file";
+    $uploadInput.multiple = true;
     $uploadInput.addEventListener("change", (event: Event) => {
       const target = event.target as HTMLInputElement | null;
       if (target == null) return;

@@ -31,7 +31,8 @@ const stageMap = (() => {
     maxWidth: number,
     minWidth: number,
     minX: number,
-    minY: number
+    minY: number,
+    regionNum: number
   ) => {
     $canvas.width = maxWidth;
     $canvas.height = maxWidth;
@@ -40,9 +41,12 @@ const stageMap = (() => {
     calcX = (x) => (x / scale) * minWidth + minX;
     calcY = (y) => (y / scale) * minWidth + minY;
 
+    $labels.innerHTML = "";
     $canvas.style.transform = `scale(${scale})`;
     ctx.clearRect(0, 0, maxWidth, maxWidth);
-    $labels.innerHTML = "";
+    if (regionNum > 1) {  // 多区域叠加时取 lighten 合成
+      ctx.globalCompositeOperation = "lighten";
+    }
   };
   const draw = (color: string, x: number, y: number, width: number) => {
     ctx.fillStyle = color;
@@ -204,16 +208,15 @@ export async function handleFile(files: FileList | null | undefined) {
 
   function render() {
     const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
-    stageMap.init(maxWidth, idx.minWidth, idx.minX, idx.minY);
+    const regionNum = filenames.length;
+    stageMap.init(maxWidth, idx.minWidth, idx.minX, idx.minY, regionNum);
 
     for (let regionIndex = 0; regionIndex < filenames.length; regionIndex++) {
-      const color = `hsl(${
-        (regionIndex * 360) / filenames.length
-      }deg 100% 50% / 60%)`;
-      const region = query.region(regionIndex + 1);
       const name = filenames[regionIndex];
+      const color = `hsl(${(regionIndex * 360) / regionNum}deg 100% 50% / 60%)`;
       stageMap.label(name, color);
-
+      
+      const region = query.region(regionIndex + 1);
       for (let depth = 0; depth < depthVisibleArr.length; depth++) {
         if (!depthVisibleArr[depth]) continue;
         const widthBit = idx.maxDepth - depth; // idx.widthBit + idx.maxDepth - depth
@@ -231,6 +234,7 @@ export async function handleFile(files: FileList | null | undefined) {
                 break;
               }
               case Region.STAT_EXCLUDE: {
+                if (regionNum > 1) break; // 多区域叠加时不绘制 EXCLUDE
                 stageMap.draw("#ffffff99", x << widthBit, y << widthBit, width);
                 break;
               }
@@ -238,6 +242,7 @@ export async function handleFile(files: FileList | null | undefined) {
                 console.error(
                   `unexpected status, region: ${name}, depth: ${depth}, gridX: ${x}, gridY: ${y}, status: ${status}`
                 );
+                break;
             }
           }
         }

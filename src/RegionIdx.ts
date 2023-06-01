@@ -78,7 +78,10 @@ export class RegionIdx implements RegionQuery {
       this.regions[index] = region;
       return region;
     } catch (error) {
-      console.error(`加载区域索引失败，dir: ${this.dir}, id: ${regionId}`, error);
+      console.error(
+        `加载区域索引失败，dir: ${this.dir}, id: ${regionId}`,
+        error
+      );
       return Region.EXCLUDE;
     }
   }
@@ -147,9 +150,10 @@ class MappedRegion implements Region {
         throw new IllegalArgumentException(
           `解析偏移量信息异常，depth: ${depth}, begin: ${begin}, end: ${end}`
         );
+      } else if (end > begin) {
+        this.layers[depth] = channel.map(begin, end);
+        begin = end;
       }
-      this.layers[depth] = channel.map(begin, end);
-      begin = end;
     }
     const buffer = channel.mapAll(begin);
     if (buffer != null && buffer.byteLength > 0) {
