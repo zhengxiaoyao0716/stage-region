@@ -23,28 +23,49 @@ const stageMap = (() => {
   $preview.appendChild($labels);
 
   let rect: DOMRect | undefined;
-  let scale = 1;
+  let scale = 1, transX = 0, transY = 0; // prettier-ignore
   let calcX: (value: number) => number;
   let calcY: (value: number) => number;
+
+  function setView(s: number, x: number, y: number) {
+    scale = s;
+    transX = x;
+    transY = y;
+    $canvas.style.transform = `scale(${scale}) translate(${x}px, ${y}px)`;
+  }
+  let l;
+  $preview.addEventListener("wheel", (event) => {
+    if (rect == null) return;
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    const scaleChange = event.deltaY / 2048;
+    const scaleNew = scale - scale * scaleChange;
+    setView(
+      scaleNew,
+      transX + (offsetX * scaleChange) / scaleNew,
+      transY + (offsetY * scaleChange) / scaleNew
+    );
+  });
 
   const init = (
     maxWidth: number,
     minWidth: number,
     minX: number,
-    minY: number,
-    regionNum: number
+    minY: number
   ) => {
     $canvas.width = maxWidth;
     $canvas.height = maxWidth;
-    rect = $preview.getBoundingClientRect();
-    scale = Math.min(rect.width, rect.height) / maxWidth;
-    calcX = (x) => (x / scale) * minWidth + minX;
-    calcY = (y) => (y / scale) * minWidth + minY;
 
+    rect = $preview.getBoundingClientRect();
+    setView(Math.min(rect.width, rect.height) / maxWidth, 0, 0);
+    calcX = (x) => ((x - transX * scale) / scale) * minWidth + minX;
+    calcY = (y) => ((y - transY * scale) / scale) * minWidth + minY;
+  };
+  const clear = (maxWidth: number, regionNum: number) => {
     $labels.innerHTML = "";
-    $canvas.style.transform = `scale(${scale})`;
     ctx.clearRect(0, 0, maxWidth, maxWidth);
-    if (regionNum > 1) {  // 多区域叠加时取 lighten 合成
+    if (regionNum > 1) {
+      // 多区域叠加时取 lighten 合成
       ctx.globalCompositeOperation = "lighten";
     }
   };
@@ -69,11 +90,13 @@ const stageMap = (() => {
     if (rect == null) return;
     const x = event.x - rect.left;
     const y = event.y - rect.top;
-    $position.innerText = `${calcX(x).toFixed(2)}, ${calcY(y).toFixed(2)}`;
+    const posX = calcX(x).toFixed(2);
+    const posY = calcY(y).toFixed(2);
+    $position.innerText = `${posX}, ${posY}`;
     $position.style.left = `${x + 12}px`;
     $position.style.top = `${y}px`;
   });
-  return { init, draw, label };
+  return { init, clear, draw, label };
 })();
 
 const $pannel = document.createElement("div");
@@ -206,16 +229,18 @@ export async function handleFile(files: FileList | null | undefined) {
   const query = new RegionIdx(openFile, idx, "", filenames);
   const depthVisibleArr = new Array(1 + idx.maxDepth).fill(true);
 
+  const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
+  stageMap.init(maxWidth, idx.minWidth, idx.minX, idx.minY);
+
   function render() {
-    const maxWidth = 1 << idx.maxDepth; // idx.maxWidth >> idx.widthBit
     const regionNum = filenames.length;
-    stageMap.init(maxWidth, idx.minWidth, idx.minX, idx.minY, regionNum);
+    stageMap.clear(maxWidth, regionNum);
 
     for (let regionIndex = 0; regionIndex < filenames.length; regionIndex++) {
       const name = filenames[regionIndex];
       const color = `hsl(${(regionIndex * 360) / regionNum}deg 100% 50% / 60%)`;
       stageMap.label(name, color);
-      
+
       const region = query.region(regionIndex + 1);
       for (let depth = 0; depth < depthVisibleArr.length; depth++) {
         if (!depthVisibleArr[depth]) continue;
