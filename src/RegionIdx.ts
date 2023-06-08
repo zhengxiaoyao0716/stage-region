@@ -228,6 +228,7 @@ module RegionLayer {
       if (stat !== 0b11) {
         // <0b11-0b{2}> ...
         tiles[ti] = () => stat as Region.STAT;
+        reader.offset2bit();    // assert !eof || ti == tiles.length - 1;
         continue;
       }
       // else
